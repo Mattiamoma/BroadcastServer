@@ -18,6 +18,8 @@ const startServer = () => {
         ws.on("message", (message) => {
             console.log(req.socket.remoteAddress)
             console.log(`Received message => ${message}`); 
+            forwardMessage(wss, ws, message);
+            console.log("Message forwarded");
         });
 
         ws.on("close", () => {
@@ -27,6 +29,15 @@ const startServer = () => {
     });
 
     
+}
+
+
+const forwardMessage = (wss, ws,  message) => {
+    wss.clients.forEach((client) => {
+        if (client !== ws && client.readyState === WebSocket.OPEN) {
+            client.send(message);
+        }
+    });
 }
 
 startServer();
