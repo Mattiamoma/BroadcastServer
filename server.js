@@ -17,9 +17,9 @@ const startServer = () => {
 
         ws.on("message", (message) => {
             console.log(req.socket.remoteAddress)
-            console.log(`Received message => ${message}`); 
+            let parsedMessage = JSON.parse(message);
+            console.log(`Received message => ${(parsedMessage.body)}`); 
             forwardMessage(wss, ws, message);
-            console.log("Message forwarded");
         });
 
         ws.on("close", () => {

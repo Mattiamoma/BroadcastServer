@@ -13,12 +13,11 @@ const startClient = () => {
 
     ws.on("open", () => {
         console.log("Connected to server");
-        ws.send("Hello from client");
         rl.prompt();
     });
 
     ws.on("message", (message) => {
-        const parsedMessage = message;
+        const parsedMessage = JSON.parse(message);
         let line = rl.line;
         rl.write(null, {ctrl: true, name: "u"}); // clear line
         console.log("Received message =>", parsedMessage.toString());
@@ -37,7 +36,11 @@ const startClient = () => {
 
 
     rl.on("line", (input) => {
-        ws.send(input);
+        let message = {
+            header: "",
+            body: input
+        }
+        ws.send(JSON.stringify(message));
         rl.prompt();
     });
 
