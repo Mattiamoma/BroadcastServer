@@ -1,6 +1,12 @@
 const crypto = require('crypto');
 const passphrase = 'my secret passphrase'; 
+
+
 //asymmetric encryption
+
+
+
+//generate a key pair for asymmetric encryption using rsa algorithm
 
 const generateKeyPair = () => {
     return crypto.generateKeyPairSync('rsa', {
@@ -12,19 +18,22 @@ const generateKeyPair = () => {
         privateKeyEncoding: {
             type: 'pkcs8',
             format: 'pem',
-            cipher: 'aes-256-cbc',
-            passphrase: passphrase
+            cipher: 'aes-256-cbc'
         }
     });
 }
 
+// asymmetric encryption and decryption functions will be used to send key and iv for symmetric encryption
 
 const asymmetricEncrypt = (publicKey, message) => {
-    return crypto.publicEncrypt(publicKey, Buffer.from(text, 'utf8')).toString('base64');
+    return crypto.publicEncrypt(
+        publicKey, 
+        Buffer.from(message, 'utf8')).toString('base64');
 }
 
 
 const asymmetricDecrypt = (privateKey, encryptedMessage) => {
+    //decryption is protected also by a passphrase so needs to be specified
     return crypto.privateDecrypt({
         key: privateKey,
         passphrase
@@ -35,4 +44,27 @@ const asymmetricDecrypt = (privateKey, encryptedMessage) => {
 
 //symmetric encryption
 
+
+
+//generate a random key and iv for symmetric encryption, need to be shared with the other party
+
+const generateSymKeyAndIv = () => { 
+    const key = crypto.randomBytes(32).toString('hex');
+    const iv = crypto.randomBytes(16).toString('hex');
+    return { key, iv };
+}
+
+
+const symmetricEncrypt = (key, message, iv) => {
+    const cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(key, 'hex'), iv);
+    let encrypted = cipher.update(message, 'utf8', 'hex') + cipher.final('hex');
+    return encrypted;
+}
+
+
+const symmetricDecrypt = (key, encryptedMessage, iv) => {
+    const decipher = crypto.createDecipheriv('aes-256-cbc', Buffer.from(key, 'hex'), iv);
+    let decrypted = decipher.update(encryptedMessage, 'hex', 'utf8') + decipher.final('utf8');
+    return decrypted;
+}
 

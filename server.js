@@ -2,13 +2,12 @@ const WebSocket = require("ws");
 
 const startServer = () => {
     const wss = new WebSocket.Server({ port: 8080 });
-    const connectedUsers = new Map();
+    const connectedUsers = new Map(); // store connected users and their relevant information
+
     wss.on("connection", (ws, req) => {
 
         console.log("Client connected");
         connectedUsers.set(ws, req.socket.remoteAddress);
-
-    
     
         ws.on("error", (error) => {
             console.log(`Error: ${error}`);
@@ -16,7 +15,7 @@ const startServer = () => {
 
 
         ws.on("message", (message) => {
-            console.log(req.socket.remoteAddress)
+            //TODO: implement encryption and decryption of messages
             let parsedMessage = JSON.parse(message);
             console.log(`Received message => ${(parsedMessage.body)}`); 
             forwardMessage(wss, ws, message);
