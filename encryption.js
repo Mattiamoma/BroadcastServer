@@ -18,7 +18,8 @@ const generateKeyPair = () => {
         privateKeyEncoding: {
             type: 'pkcs8',
             format: 'pem',
-            cipher: 'aes-256-cbc'
+            cipher: 'aes-256-cbc',
+            passphrase: passphrase
         }
     });
 }
@@ -49,22 +50,32 @@ const asymmetricDecrypt = (privateKey, encryptedMessage) => {
 //generate a random key and iv for symmetric encryption, need to be shared with the other party
 
 const generateSymKeyAndIv = () => { 
-    const key = crypto.randomBytes(32).toString('hex');
+    const symmetricKey = crypto.randomBytes(32).toString('hex');
     const iv = crypto.randomBytes(16).toString('hex');
-    return { key, iv };
+    return { symmetricKey, iv };
 }
 
 
 const symmetricEncrypt = (key, message, iv) => {
-    const cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(key, 'hex'), iv);
+    const cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(key, 'hex'), Buffer.from(iv, 'hex'));
     let encrypted = cipher.update(message, 'utf8', 'hex') + cipher.final('hex');
     return encrypted;
 }
 
 
 const symmetricDecrypt = (key, encryptedMessage, iv) => {
-    const decipher = crypto.createDecipheriv('aes-256-cbc', Buffer.from(key, 'hex'), iv);
+    const decipher = crypto.createDecipheriv('aes-256-cbc', Buffer.from(key, 'hex'), Buffer.from(iv, 'hex'));
     let decrypted = decipher.update(encryptedMessage, 'hex', 'utf8') + decipher.final('utf8');
     return decrypted;
 }
 
+
+
+module.exports = {
+    generateKeyPair,
+    asymmetricEncrypt,
+    asymmetricDecrypt,
+    generateSymKeyAndIv,
+    symmetricEncrypt,
+    symmetricDecrypt
+};
