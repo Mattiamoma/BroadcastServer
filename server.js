@@ -44,7 +44,7 @@ const startServer = () => {
             }
 
             message = JSON.parse(message);
-            //TODO: implement encryption and decryption of messages
+
             let decryptedBody = encryption.symmetricDecrypt(connectedUsers.get(ws).key, message.body, connectedUsers.get(ws).iv);
             console.log(`Received message => ${(decryptedBody)}`); 
             message.body = decryptedBody;
@@ -63,9 +63,14 @@ const startServer = () => {
 
 const forwardMessage = (wss, ws, message) => {
     wss.clients.forEach((client) => {
-        if (client !== ws && client.readyState === WebSocket.OPEN) {
-            message.body = encryption.symmetricEncrypt(connectedUsers.get(client).key, String(message.body), connectedUsers.get(client).iv);
-            client.send(JSON.stringify(message));
+        
+        if (client !== ws && connectedUsers.get(client) && client.readyState === WebSocket.OPEN) {
+            //if the client is not the sender and the client has a valid key setted in the connectedUsers map
+            //then send message with encrypted body
+            //make a copy of the message object to avoid modifying the original message
+            let messageToSend = {...message};
+            messageToSend.body = encryption.symmetricEncrypt(connectedUsers.get(client).key, String(message.body), connectedUsers.get(client).iv);
+            client.send(JSON.stringify(messageToSend));
         }
     });
 }
