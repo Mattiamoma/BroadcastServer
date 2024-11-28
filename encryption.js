@@ -43,9 +43,9 @@ const asymmetricDecrypt = (privateKey, encryptedMessage) => {
 
 
 
+
+
 //symmetric encryption
-
-
 
 //generate a random key and iv for symmetric encryption, need to be shared with the other party
 

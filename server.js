@@ -23,23 +23,14 @@ const startServer = () => {
 
             
             if(!connectedUsers.get(ws)) {
+                //if the client does not have a valid key setted in the connectedUsers map then this should be a message with key and iv to set the encryption logic
                 message = JSON.parse(message);
                 if(message.header !== "encryption") {
                     console.log("Invalid message");
-                    return;
-                }
-                let decryptedMessage = JSON.parse(encryption.asymmetricDecrypt(privateKey, message.body));
-                let key = decryptedMessage.key;
-                let iv = decryptedMessage.iv;
-                //check if key and iv are valid else close the connection
-                if(!key || !iv) {
-                    console.log("Invalid key or iv");
                     ws.close();
                     return;
                 }
-                //store the key, iv and public key of the client
-                connectedUsers.set(ws, { key, iv });
-                console.log("Encryption established");
+                StoreKeyAndIv(ws, message, privateKey);
                 return;
             }
 
@@ -58,6 +49,27 @@ const startServer = () => {
     });
 
     
+}
+
+
+
+const StoreKeyAndIv = (ws, message, privateKey) => {
+
+    //decrypt the message with the private key for the symmetric encryption
+    let decryptedMessage = JSON.parse(encryption.asymmetricDecrypt(privateKey, message.body));
+    let key = decryptedMessage.key;
+    let iv = decryptedMessage.iv;
+
+    //check if key and iv are valid else close the connection
+    if(!key || !iv) {
+        console.log("Invalid key or iv");
+        ws.close();
+        return;
+    }
+    //store the key, iv and public key of the client
+    connectedUsers.set(ws, { key, iv });
+    console.log("Encryption established");
+
 }
 
 

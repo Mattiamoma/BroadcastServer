@@ -52,6 +52,10 @@ const startClient = () => {
 
 
 
+
+
+
+
 const establishEncryption = (ws, parsedMessage) => {
     //parsedMessage contains the public key sent by the server in the body field
     publicKey = parsedMessage.body;
@@ -74,6 +78,9 @@ const establishEncryption = (ws, parsedMessage) => {
 
 
 
+
+
+
 const startCLI = () => {
     const rl = readline.createInterface({
         input: process.stdin,
@@ -81,6 +88,8 @@ const startCLI = () => {
         prompt: ">"
     });
     rl.prompt();
+
+
 
     rl.on("line", (input) => {
         //encrypt the message using the symmetric key and iv and send it to the server
@@ -93,6 +102,8 @@ const startCLI = () => {
         ws.send(JSON.stringify(message));
         rl.prompt();
     });
+
+    
 
     rl.on("close", () => {
         process.exit(0);
