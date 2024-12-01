@@ -1,7 +1,7 @@
 const WebSocket = require("ws");
-const encryption = require("./encryption");
+const encryption = require("./utils/encryption");
 const connectedUsers = new Map(); // store connected users and their relevant information
-
+const state = require("./utils/state");
 const availableChannels = ["GLOBAL", "CHANNEL1", "CHANNEL2", "CHANNEL3"];
 const defaultChannel = "GLOBAL";
 
@@ -13,6 +13,7 @@ const startServer = (port) => {
     const {publicKey, privateKey} = encryption.generateKeyPair(); 
 
     wss.on("connection", (ws, req) => {
+
         
         ws.send(JSON.stringify({ 
             header: "connect", 
@@ -49,15 +50,16 @@ const startServer = (port) => {
                     break;
 
                 case "switch":
-                    if(availableChannels.includes(message.body)) {
-                        connectedUsers.get(ws).channel = message.body;
-                        console.log(`Switched to channel: ${message.body}`);
+                    let channelName = message.body.toUpperCase();
+                    if(availableChannels.includes(channelName)) {
+                        connectedUsers.get(ws).channel = channelName;
+                        console.log(`Switched to channel: ${channelName}`);
                         ws.send(JSON.stringify({
                             header: "switch",
-                            body: message.body
+                            body: channelName
                         }));
                     } else {
-                        console.log(`Channel ${message.body} does not exist`);
+                        console.log(`Channel ${channelName} does not exist`);
                         ws.send(JSON.stringify({ 
                             header: "switch", 
                             body: false
@@ -67,6 +69,7 @@ const startServer = (port) => {
 
 
                 case "channels":
+                    
                     ws.send(JSON.stringify({ 
                         header: "channels", 
                         body: availableChannels 
@@ -75,6 +78,7 @@ const startServer = (port) => {
 
 
                 default:
+                    //decrypt the message with the symmetric key and iv
                     let decryptedBody;
                     try {
                         decryptedBody = encryption.symmetricDecrypt(connectedUsers.get(ws).key, message.body, connectedUsers.get(ws).iv);
@@ -113,6 +117,10 @@ const StoreKeyAndIv = (ws, message, privateKey) => {
         decryptedMessage = JSON.parse(encryption.asymmetricDecrypt(privateKey, message.body));
     } catch (error) {
         console.log(`Decryption error: ${error}`);
+        ws.send(JSON.stringify({
+            header: "error",
+            body: "Error retrieving symmetric key and iv"
+        }));
         ws.close();
         return;
     }
@@ -152,7 +160,7 @@ const forwardMessage = (wss, ws, message) => {
     });
 }
 
-startServer(8080);
+//startServer(8080);
 
 module.exports = {
     startServer
