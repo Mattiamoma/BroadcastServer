@@ -1,9 +1,6 @@
-const WebSocket = require("ws");
-const clientMessageHandler = require("./handlers/messageHandler").clientMessageHandler;
+const clientMessageHandler = require("./handlers/clientMessageHandler").clientMessageHandler;
 const state = require("./utils/state");
 const ws = state.getWebSocket();
-
-
 
 
 
@@ -27,15 +24,6 @@ const startClient = (username) => {
 
 
 }
-
-
-
-
-
-
-
-
-//startClient(Math.random().toString(36).substring(7));
 
 
 

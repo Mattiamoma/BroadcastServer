@@ -21,9 +21,8 @@ const startCLI = () => {
 
     rl.on("line", (input) => {
         //encrypt the message using the symmetric key and iv and send it to the server
-        if(commands.isCommand(input)) {
-            const [command, ...args] = input.split(" ");
-            commands.handleCommands(command, args, rl, ws);
+        if(input.startsWith("/")) {
+            commands.handleCommand(input, ws, rl);
             return;
         }
         

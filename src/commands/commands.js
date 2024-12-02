@@ -1,79 +1,77 @@
-const getCurrentChannel = require("../utils/state.js").getCurrentChannel;
-const state = require("../utils/state.js");
-const commands = ["channels", "join", "leave", "quit", "help"];
+const state = require('../utils/state');
 
-const isCommand = (input) => {
-    let command = input.split(" ")[0];
-    if(command.startsWith("/")) {
-        command = command.slice(1);
-        return commands.includes(command);
+const commands = {};
+
+const registerCommand = (name, handler) => {
+    commands[name] = handler;
+};
+
+
+//select the command to execute based on the input
+const handleCommand = (input, ws, rl) => {
+    const [command, ...args] = input.split(" ");
+    if (commands[command]) {
+        commands[command](args, ws, rl);
+    } else {
+        console.log("Unknown command");
     }
-    
-    return false; 
-}
+};
 
-const handleCommands = (command, args, rl, ws) => {
 
-    if(!isCommand(command)) {
-        console.log("Invalid command");
+
+registerCommand("/channels", (args, ws, rl) => {
+    sendCommandMessage(ws, "channels");
+    rl.pause();
+    state.setCommandsTimeout(rl);
+});
+
+
+
+registerCommand("/join", (args, ws, rl) => {
+    let switchingChannel = args[0] || "GLOBAL";
+    if (switchingChannel === state.getCurrentChannel()) {
+        console.log(`Already in channel: ${state.getCurrentChannel()}`);
+        return;
+    }
+    sendCommandMessage(ws, "switch", switchingChannel);
+    rl.pause();
+    state.setCommandsTimeout(rl);
+});
+
+
+
+
+registerCommand("/leave", (args, ws, rl) => {
+    if (state.getCurrentChannel() === "GLOBAL") {
+        console.log("Cannot leave GLOBAL channel");
         rl.prompt();
         return;
     }
+    sendCommandMessage(ws, "switch", "GLOBAL");
+    state.setCommandsTimeout(rl);
+    rl.pause();
+});
 
 
-    switch (command.toLowerCase()) {
-
-        case "/channels":
-            sendCommandMessage(ws, "channels");
-            rl.pause();
-            timeout = state.setCommandsTimeout(rl);
-            break;
-
-        case "/join":
-
-            let switchingChannel = args[0] || "GLOBAL";
-            if(switchingChannel === getCurrentChannel()) {
-                console.log(`Already in channel: ${getCurrentChannel()}`);
-                break;
-            }
-            sendCommandMessage(ws, "switch", switchingChannel);
-            rl.pause();
-            state.setCommandsTimeout(rl);
-
-            break;
-
-        case "/leave":
-            if(getCurrentChannel() === "GLOBAL") {
-                console.log("Cannot leave GLOBAL channel");
-                rl.prompt();
-                break;
-            }
-            sendCommandMessage(ws, "switch", "GLOBAL");
-            state.setCommandsTimeout(rl);
-            rl.pause();
-
-            
-            break;
 
 
-        case "/quit":
-            rl.close();
-            break;
+registerCommand("/quit", (args, ws, rl) => {
+    rl.close();
+});
 
-        case "/help":
-            console.log("Available commands:");
-            console.log("/channels - List available channels");
-            console.log("/join <channel> - Join a channel");
-            console.log("/leave - Leave the current channel");
-            console.log("/quit - Quit the chat");
-            rl.prompt();
-            break;
 
-        default:
-            console.log("Invalid command");
-            rl.prompt();
-    }
-}
+registerCommand("/help", (args, ws, rl) => {
+    console.log("Available commands:");
+    console.log("/channels - list available channels");
+    console.log("/join <channel> - join a channel");
+    console.log("/leave - leave the current channel");
+    console.log("/quit - quit the application");
+    console.log("/help - display this message");
+    rl.prompt();
+});
+
+
+
 
 const sendCommandMessage = (ws, header, body) => {
     ws.send(JSON.stringify({
@@ -82,9 +80,6 @@ const sendCommandMessage = (ws, header, body) => {
     }));
 }
 
-
-
-module.exports = { 
-    handleCommands,
-    isCommand
-}
+module.exports = {
+    handleCommand
+};

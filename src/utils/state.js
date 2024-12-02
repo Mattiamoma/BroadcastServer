@@ -4,6 +4,18 @@ var commandsTimeout = undefined;
 var currentChannel = "GLOBAL";
 const { symmetricKey, iv } = encryption.generateSymKeyAndIv();
 const ws = new WebSocket("ws://localhost:8080");
+const connectedUsers = new Map();
+
+const {publicKey, privateKey} = encryption.generateKeyPair(); 
+
+const getPublicAsymKey = () => {   
+    return publicKey;
+}
+
+const getPrivateAsymKey = () => {
+    return privateKey;
+}
+
 
 const getSymmetricKeyAndIv = () => {
     return { symmetricKey, iv };
@@ -46,5 +58,8 @@ module.exports = {
     clearCommandsTimeout,
     getCommandsTimeout,
     getWebSocket,
-    getSymmetricKeyAndIv
+    getSymmetricKeyAndIv,
+    getPublicAsymKey,
+    getPrivateAsymKey,
+    connectedUsers
 }
