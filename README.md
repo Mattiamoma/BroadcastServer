@@ -148,3 +148,8 @@ These commands can be executed by typing them into the client's CLI.
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+
+## Inspiration
+
+This project was inspired by the [Broadcast Server project](https://roadmap.sh/projects/broadcast-server) on roadmap.sh.
