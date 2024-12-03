@@ -1,10 +1,8 @@
 const clientMessageHandler = require("./handlers/clientMessageHandler").clientMessageHandler;
-const state = require("./utils/state");
-const ws = state.getWebSocket();
 
 
 
-const startClient = (username) => {
+const startClient = (username, ws) => {
 
     ws.on("open", () => {
         console.log("Connected to server");

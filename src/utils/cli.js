@@ -2,10 +2,9 @@ const state = require("./state");
 const readline = require("readline");
 const encryption = require("./encryption");
 const commands = require("../commands/commands");
-const ws = state.getWebSocket();
 const { symmetricKey, iv } = state.getSymmetricKeyAndIv();
 
-const startCLI = () => {
+const startCLI = (ws) => {
     const rl = readline.createInterface({
         input: process.stdin,
         output: process.stdout,

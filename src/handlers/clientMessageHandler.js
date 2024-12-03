@@ -30,14 +30,14 @@ registerHeader("connect", (ws, parsedMessage, username) => {
     
     establishEncryption(ws, parsedMessage, username);
 
-    rl = cli.startCLI();
+    rl = cli.startCLI(ws);
     rl.setPrompt(`[${state.getCurrentChannel()}] > `);
     rl.prompt();
 });
 
 
 //handle the switch channel response from the server
-registerHeader("switch", (ws, parsedMessage, username) => {
+registerHeader("switch", (ws, parsedMessage) => {
     if(parsedMessage.body && state.getCommandsTimeout()) {
         state.setCurrentChannel(parsedMessage.body);
         
@@ -54,7 +54,7 @@ registerHeader("switch", (ws, parsedMessage, username) => {
 
 
 //get the available channels from the server
-registerHeader("channels", (ws, parsedMessage, username) => {
+registerHeader("channels", (ws, parsedMessage) => {
     if(state.getCommandsTimeout()) {
         console.log("Available channels:");
         console.log(parsedMessage.body);
@@ -68,14 +68,14 @@ registerHeader("channels", (ws, parsedMessage, username) => {
 
 
 //handle the error message from the server
-registerHeader("error", (ws, parsedMessage, username) => {
+registerHeader("error", (ws, parsedMessage) => {
     console.log(`Oops, seems like an error occured: ${parsedMessage.body}`);
     rl.prompt();
 });
 
 
 //handle the general message broadcasted by the server
-registerHeader("message", (ws, parsedMessage, username) => {
+registerHeader("message", (ws, parsedMessage) => {
     let line = rl.line;
 
     rl.write(null, {ctrl: true, name: "u"}); 
@@ -86,6 +86,23 @@ registerHeader("message", (ws, parsedMessage, username) => {
     rl.write(line);
 });
 
+
+
+
+registerHeader("whisper", (ws, parsedMessage) => {
+    let line = rl.line;
+
+    rl.write(null, {ctrl: true, name: "u"}); 
+    const decryptedMessage = encryption.symmetricDecrypt(symmetricKey, parsedMessage.body, iv);
+
+    rl.setPrompt(`\x1b[3m[whisper] > \x1b[0m`);
+    rl.prompt();
+    console.log(`\x1b[3m[${parsedMessage.username}]: ${decryptedMessage}\x1b[0m`);
+
+    rl.setPrompt(`[${state.getCurrentChannel()}] > `);
+    rl.prompt(); 
+    rl.write(line);
+});
 
 
 

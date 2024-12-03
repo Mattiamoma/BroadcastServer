@@ -43,14 +43,19 @@ registerHeader("encryption", (ws, message) => {
 //switch the channel of the client
 registerHeader("switch", (ws, message) => {
     let channelName = message.body.toUpperCase();
+
+    //check if the channel exists in the availableChannels array
     if (availableChannels.includes(channelName)) {
         state.connectedUsers.get(ws).channel = channelName;
         console.log(`Switched to channel: ${channelName}`);
+
+        //send the channel name to the client to confirm the switch
         ws.send(JSON.stringify({
             header: "switch",
             body: channelName
         }));
-    } else {
+    } 
+    else {
         console.log(`Channel ${channelName} does not exist`);
         ws.send(JSON.stringify({
             header: "switch",
@@ -78,7 +83,8 @@ registerHeader("message", (ws, message, wss) => {
     let decryptedBody;
     try {
         decryptedBody = encryption.symmetricDecrypt(state.connectedUsers.get(ws).key, message.body, state.connectedUsers.get(ws).iv);
-    } catch (error) {
+    } 
+    catch (error) {
         console.log(`Decryption error: ${error}`);
         ws.send(JSON.stringify({
             header: "error",
@@ -91,6 +97,47 @@ registerHeader("message", (ws, message, wss) => {
     forwardMessage(wss, ws, message);
 });
 
+
+
+
+registerHeader("whisper", (ws, message, wss) => {
+    let sender = state.connectedUsers.get(ws);
+    //find the receiver in the connectedUsers map based on the target username
+    let receiverEntry = Array.from(state.connectedUsers.entries()).find(([key, user]) => user.username === message.body.target);
+    let receiver = receiverEntry ? receiverEntry[1] : null;
+
+    //if the receiver is not found then send an error message to the sender
+    if (!receiver) { 
+        console.log("User not found");
+        ws.send(JSON.stringify({
+            header: "error",
+            body: "User not found"
+        }));
+        return;
+    }
+
+    let decryptedBody;
+    try {
+        decryptedBody = encryption.symmetricDecrypt(sender.key, message.body.message, sender.iv);
+    } 
+    catch (error) {
+        console.log(`Decryption error: ${error}`);
+        ws.send(JSON.stringify({
+            header: "error",
+            body: "Error decrypting message"
+        }));
+        return;
+    }
+
+    //get the websocket of the receiver from the entry in the connectedUsers map to send the message
+    let receiverWs = receiverEntry[0];
+    message.body = decryptedBody;
+    message.username = sender.username;
+
+    //encrypt the message with the receiver's key and iv and send it
+    message.body = encryption.symmetricEncrypt(receiver.key, String(message.body), receiver.iv);
+    receiverWs.send(JSON.stringify(message));
+});
 
 
 
