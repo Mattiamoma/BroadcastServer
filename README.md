@@ -42,7 +42,7 @@ A simple WebSocket-based broadcast server that receives encrypted messages from 
 
 ```bash
 
-/project-root
+/BroadcastServer
 ├── /src
 │   ├── /commands
 │   │   └── commands.js
