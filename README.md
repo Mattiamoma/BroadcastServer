@@ -48,7 +48,8 @@ A simple WebSocket-based broadcast server that receives encrypted messages from 
 │   │   └── commands.js
 │   │
 │   ├── /handlers
-│   │   └── messageHandlers.js
+│   │   └── clientMessageHandler.js
+│   │   └── serverMessageHandler.js
 │   │
 │   ├── /utils
 │   │   ├── cli.js
